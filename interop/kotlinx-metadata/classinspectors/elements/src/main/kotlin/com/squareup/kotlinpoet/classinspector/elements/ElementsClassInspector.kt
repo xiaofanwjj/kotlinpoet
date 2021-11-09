@@ -198,7 +198,9 @@ public class ElementsClassInspector private constructor(
   }
 
   override fun methodExists(className: ClassName, methodSignature: JvmMethodSignature): Boolean {
-    return lookupMethod(className, methodSignature, ElementFilter::methodsIn) != null
+    return lookupMethod(className, methodSignature) {
+      ElementFilter.methodsIn(it)
+    } != null
   }
 
   /**
@@ -366,24 +368,32 @@ public class ElementsClassInspector private constructor(
         }
 
         val getterData = property.getterSignature?.let { getterSignature ->
-          val method = classIfCompanion.lookupMethod(getterSignature, ElementFilter::methodsIn)
+          val method = classIfCompanion.lookupMethod(getterSignature) {
+            ElementFilter.methodsIn(it)
+          }
           method?.methodData(
             typeElement = typeElement,
             hasAnnotations = property.getterFlags.hasAnnotations,
             jvmInformationMethod = classIfCompanion.takeIf { it != typeElement }
-              ?.lookupMethod(getterSignature, ElementFilter::methodsIn)
+              ?.lookupMethod(getterSignature) {
+                ElementFilter.methodsIn(it)
+              }
               ?: method
           )
             ?: return@let MethodData.SYNTHETIC
         }
 
         val setterData = property.setterSignature?.let { setterSignature ->
-          val method = classIfCompanion.lookupMethod(setterSignature, ElementFilter::methodsIn)
+          val method = classIfCompanion.lookupMethod(setterSignature) {
+            ElementFilter.methodsIn(it)
+          }
           method?.methodData(
             typeElement = typeElement,
             hasAnnotations = property.setterFlags.hasAnnotations,
             jvmInformationMethod = classIfCompanion.takeIf { it != typeElement }
-              ?.lookupMethod(setterSignature, ElementFilter::methodsIn)
+              ?.lookupMethod(setterSignature) {
+                ElementFilter.methodsIn(it)
+              }
               ?: method,
             knownIsOverride = getterData?.isOverride
           )
@@ -393,7 +403,9 @@ public class ElementsClassInspector private constructor(
         val annotations = mutableListOf<AnnotationSpec>()
         if (property.hasAnnotations) {
           property.syntheticMethodForAnnotations?.let { annotationsHolderSignature ->
-            val method = typeElement.lookupMethod(annotationsHolderSignature, ElementFilter::methodsIn)
+            val method = typeElement.lookupMethod(annotationsHolderSignature) {
+              ElementFilter.methodsIn(it)
+            }
               ?: return@let MethodData.SYNTHETIC
             annotations += method.annotationSpecs()
           }
@@ -427,12 +439,16 @@ public class ElementsClassInspector private constructor(
     val methodData = declarationContainer.functions.associateWith { kmFunction ->
       val signature = kmFunction.signature
       if (signature != null) {
-        val method = typeElement.lookupMethod(signature, ElementFilter::methodsIn)
+        val method = typeElement.lookupMethod(signature) {
+          ElementFilter.methodsIn(it)
+        }
         method?.methodData(
           typeElement = typeElement,
           hasAnnotations = kmFunction.hasAnnotations,
           jvmInformationMethod = classIfCompanion.takeIf { it != typeElement }
-            ?.lookupMethod(signature, ElementFilter::methodsIn)
+            ?.lookupMethod(signature) {
+              ElementFilter.methodsIn(it)
+            }
             ?: method
         )
           ?: return@associateWith MethodData.SYNTHETIC
