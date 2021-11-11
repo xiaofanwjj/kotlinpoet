@@ -194,7 +194,9 @@ public class ElementsClassInspector private constructor(
   }
 
   private fun VariableElement.constantValue(): CodeBlock? {
-    return constantValue?.let(ClassInspectorUtil::codeLiteralOf)
+    return constantValue?.let {
+      ClassInspectorUtil.codeLiteralOf(it)
+    }
   }
 
   override fun methodExists(className: ClassName, methodSignature: JvmMethodSignature): Boolean {
@@ -471,7 +473,9 @@ public class ElementsClassInspector private constructor(
           }
           val signature = kmConstructor.signature
           if (signature != null) {
-            val constructor = typeElement.lookupMethod(signature, ElementFilter::constructorsIn)
+            val constructor = typeElement.lookupMethod(signature) {
+              ElementFilter.constructorsIn(it)
+            }
               ?: return@associateWith ConstructorData.EMPTY
             ConstructorData(
               annotations = if (kmConstructor.hasAnnotations) {
